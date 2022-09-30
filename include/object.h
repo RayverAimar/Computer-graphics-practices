@@ -27,6 +27,7 @@ public:
 
     //Constructors
     Object();
+    Object(Point);
     Object(std::vector<Point>);
     Object(const std::vector<Point>&, const std::vector<int>&);
 
@@ -38,6 +39,7 @@ public:
     void move(const Vector3D&);
     void move_in_circle(float);
     void move_in_spiral(float, float);
+    void move_sinusoidal(float, float);
 
     //Auxiliar methods
     void print();
@@ -50,12 +52,15 @@ public:
     Point& front();
 
     std::vector<int> indices;
-    Point last_Point;
+    Point last_Point, original_point;
     float increment, angle;
     bool moving, configurated;
 };
 
 Object::Object() : last_Point(0.0f, 0.0f), increment(0.0f), angle(0.0f), moving(false), configurated(false)
+{}
+
+Object::Object(Point _original_point) : original_point(_original_point), last_Point(0.0f, 0.0f), increment(0.0f), angle(0.0f), moving(false), configurated(false)
 {}
 
 Object::Object(std::vector<Point> _vertices) : vertices(_vertices), last_Point(0.0f, 0.0f), increment(0.0f), angle(0.0f), moving(false), configurated(false)
@@ -114,12 +119,12 @@ void Object::move_in_circle(float radio)
     if (!configurated)
     {
         configurated = true;
-        increment = 0.005f;
+        increment = 0.0005f;
     }
     float epsilon = 0.00001f;
     Point point_to_go(last_Point);
-    if (last_Point.x <= -radio + epsilon) increment = 0.005f;
-    if (last_Point.x >= radio - epsilon) increment = -0.005f;
+    if (last_Point.x <= -radio + epsilon) increment = 0.0005f;
+    if (last_Point.x >= radio - epsilon) increment = -0.0005f;
     point_to_go.x += increment;
     point_to_go.y = sqrt((radio*radio) - (point_to_go.x * point_to_go.x));
     if (increment < 0.0f) point_to_go.y *= -1;
@@ -133,14 +138,32 @@ void Object::move_in_spiral(float a, float b)
     if (!configurated)
     {
         configurated = true;
-        increment = (float) PI / 48;
+        increment = (float) PI / 600;
     }
     angle += increment;
-    if (angle > 55.0f) increment = (float)-PI / 48;
-    if (angle < 1.0f) increment = (float)PI / 48;
+    if (angle > 55.0f) increment = (float)-PI / 600;
+    if (angle < 1.0f) increment = (float)PI / 600;
     float x = b * cos(angle + a) * angle;
     float y = b * sin(angle + a) * angle;
     Point point_to_go(x, y);
+    Vector3D direction = point_to_go - last_Point;
+    last_Point = point_to_go;
+    move(direction);
+}
+
+void Object::move_sinusoidal(float a, float b)
+{
+    if (!configurated)
+    {
+        configurated = true;
+        increment = 0.0005f;
+        last_Point = Point(-1.0f, 0.5f);
+    }
+    Point point_to_go(last_Point);
+    if (point_to_go.x >= 1.0f) increment = -0.0005f;
+    if (point_to_go.x <= -1.0f) increment = 0.0005f;
+    point_to_go.x += increment;
+    point_to_go.y = a * sin(b * point_to_go.x);
     Vector3D direction = point_to_go - last_Point;
     last_Point = point_to_go;
     move(direction);
