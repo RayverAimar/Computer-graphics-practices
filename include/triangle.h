@@ -13,9 +13,8 @@ struct Triangle : public Object
 Triangle::Triangle()
 {}
 
-Triangle::Triangle(const Point& center, float separation = 2.0f)
+Triangle::Triangle(const Point& center, float separation = 2.0f) : Object(center)
 {
-    
     Point top(center), down_right(center), down_left(center);
     Vector3D top_direction(0.0f, separation), down_right_direction(separation, -separation), down_left_direction(-separation, -separation);
     top += top_direction;
