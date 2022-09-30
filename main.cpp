@@ -9,12 +9,16 @@ using namespace std;
 
 void waiting_for_movement();
 
-unsigned int VBOs[4], VAOs[4], EBOs[4];
+unsigned int VBOs[4], VAOs[4], EBOs[4], cur = 0;
 
 Point center(0.0f, 0.0f, 0.0f);
 Point left_point(-0.5f, 0.0f, 0.0f);
-Triangle triangle(center, 0.02f);
-Triangle triangle_2(left_point, 0.02f);
+Point sinusoidal_point(-0.98f, 0.0f);
+
+std::vector<Triangle> triangles(3);
+//Triangle triangle(center, 0.02f);
+//Triangle triangle_2(left_point, 0.02f);
+//Triangle triangle_3(sinusoidal_point, 0.02f);
 
 int main()
 {
@@ -22,8 +26,13 @@ int main()
 
     Shader current_shader(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
 
-    objectSetterUp<Triangle>(triangle, VBOs[0], VAOs[0], EBOs[0]);
-    objectSetterUp<Triangle>(triangle_2, VBOs[1], VAOs[1], EBOs[1]);
+    triangles[0] = Triangle(center, 0.06f);
+    triangles[1] = Triangle(left_point, 0.04f);
+    triangles[2] = Triangle(sinusoidal_point, 0.02f);
+
+    objectSetterUp<Triangle>(triangles[0], VBOs[0], VAOs[0], EBOs[0]);
+    objectSetterUp<Triangle>(triangles[1], VBOs[1], VAOs[1], EBOs[1]);
+    objectSetterUp<Triangle>(triangles[2], VBOs[2], VAOs[2], EBOs[2]);
 
     while (!glfwWindowShouldClose(OpenGL.window))
     {
@@ -40,13 +49,16 @@ int main()
         glBindVertexArray(VAOs[1]);
         glDrawElements(mode, _size, GL_UNSIGNED_INT, 0);
 
+        glBindVertexArray(VAOs[2]);
+        glDrawElements(mode, _size, GL_UNSIGNED_INT, 0);
+
         glfwSwapBuffers(OpenGL.window);
         glfwPollEvents();
     }
 
-    glDeleteVertexArrays(2, VAOs);
-    glDeleteBuffers(2, VBOs);
-    glDeleteBuffers(2, EBOs);
+    glDeleteVertexArrays(3, VAOs);
+    glDeleteBuffers(3, VBOs);
+    glDeleteBuffers(3, EBOs);
     
     return 0;
 }
@@ -63,11 +75,13 @@ void waiting_for_movement()
 {
     if (!start) return;
 
-    triangle.move_in_spiral(5.0f, -0.02f);
-    triangle_2.move_in_circle(0.5f);
+    triangles[0].move_in_spiral(5.0f, -0.02f);
+    triangles[1].move_in_circle(0.5f);
+    triangles[2].move_sinusoidal(0.1f, 30.0f);
 
-    update_object(triangle, VBOs[0], VAOs[0]);
-    update_object(triangle_2, VBOs[1], VAOs[1]);
+    update_object(triangles[0], VBOs[0], VAOs[0]);
+    update_object(triangles[1], VBOs[1], VAOs[1]);
+    update_object(triangles[2], VBOs[2], VAOs[2]);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -93,8 +107,38 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {
         start = false;
-        triangle.stop();
-        triangle_2.stop();
+        triangles[0].stop();
+        triangles[1].stop();
+        triangles[2].stop();
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
+    {
+        cur++;
+        cur = cur % 3;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        triangles[cur].move_to_the_left();
+        update_object(triangles[cur], VBOs[cur], VAOs[cur]);
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        triangles[cur].move_to_the_right();
+        update_object(triangles[cur], VBOs[cur], VAOs[cur]);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    {
+        triangles[cur].move_up();
+        update_object(triangles[cur], VBOs[cur], VAOs[cur]);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        triangles[cur].move_down();
+        update_object(triangles[cur], VBOs[cur], VAOs[cur]);
     }
 
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
