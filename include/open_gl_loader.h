@@ -9,7 +9,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 GLenum mode = GL_TRIANGLES;
-GLsizei _size = 3;
+GLsizei _size = 9;
 bool start = false;
 
 struct Open_GL_Loader

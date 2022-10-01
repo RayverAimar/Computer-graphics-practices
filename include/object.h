@@ -138,11 +138,11 @@ void Object::move_in_spiral(float a, float b)
     if (!configurated)
     {
         configurated = true;
-        increment = (float) PI / 600;
+        increment = (float) PI / 60;
     }
     angle += increment;
-    if (angle > 55.0f) increment = (float)-PI / 600;
-    if (angle < 1.0f) increment = (float)PI / 600;
+    if (angle > 55.0f) increment = (float)-PI / 60;
+    if (angle < 1.0f) increment = (float)PI / 60;
     float x = b * cos(angle + a) * angle;
     float y = b * sin(angle + a) * angle;
     Point point_to_go(x, y);
