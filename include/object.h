@@ -119,12 +119,12 @@ void Object::move_in_circle(float radio)
     if (!configurated)
     {
         configurated = true;
-        increment = 0.0005f;
+        increment = 0.0025f;
     }
     float epsilon = 0.00001f;
     Point point_to_go(last_Point);
-    if (last_Point.x <= -radio + epsilon) increment = 0.0005f;
-    if (last_Point.x >= radio - epsilon) increment = -0.0005f;
+    if (last_Point.x <= -radio + epsilon) increment = 0.0025f;
+    if (last_Point.x >= radio - epsilon) increment = -0.0025f;
     point_to_go.x += increment;
     point_to_go.y = sqrt((radio*radio) - (point_to_go.x * point_to_go.x));
     if (increment < 0.0f) point_to_go.y *= -1;
@@ -138,11 +138,11 @@ void Object::move_in_spiral(float a, float b)
     if (!configurated)
     {
         configurated = true;
-        increment = (float) PI / 600;
+        increment = (float) PI / 120;
     }
     angle += increment;
-    if (angle > 55.0f) increment = (float)-PI / 600;
-    if (angle < 1.0f) increment = (float)PI / 600;
+    if (angle > 55.0f) increment = (float)-PI / 120;
+    if (angle < 1.0f) increment = (float)PI / 120;
     float x = b * cos(angle + a) * angle;
     float y = b * sin(angle + a) * angle;
     Point point_to_go(x, y);
@@ -156,12 +156,12 @@ void Object::move_sinusoidal(float a, float b)
     if (!configurated)
     {
         configurated = true;
-        increment = 0.0005f;
+        increment = 0.0025f;
         last_Point = Point(-1.0f, 0.5f);
     }
     Point point_to_go(last_Point);
-    if (point_to_go.x >= 1.0f) increment = -0.0005f;
-    if (point_to_go.x <= -1.0f) increment = 0.0005f;
+    if (point_to_go.x >= 1.0f) increment = -0.0025f;
+    if (point_to_go.x <= -1.0f) increment = 0.0025f;
     point_to_go.x += increment;
     point_to_go.y = a * sin(b * point_to_go.x);
     Vector3D direction = point_to_go - last_Point;

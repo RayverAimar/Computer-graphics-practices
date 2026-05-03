@@ -1,36 +1,54 @@
 <div align="center">
 
-# Triangle Motions — OpenGL 3.3
+# Computer Graphics Practices — OpenGL 3.3
 
-Three triangles, three independent motion paths — spiral, circular, and sinusoidal — rendered in real time with OpenGL 3.3 Core Profile. Built as a Computer Graphics course practice.
+Two hands-on OpenGL 3.3 exercises from a Computer Graphics course: primitive motion paths and GLM matrix transformations.
 
 [![C++17](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://en.cppreference.com/w/cpp/17)
 [![OpenGL 3.3](https://img.shields.io/badge/OpenGL-3.3%20core-5586A4.svg?logo=opengl&logoColor=white)](https://www.opengl.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-<img src="docs/demo.gif" alt="Three triangles moving in spiral, circle, and sinusoidal paths" width="720"/>
-
-<img src="docs/preview.png" alt="Three orange triangles on teal background — spiral, circle, and sinusoidal motion" width="720"/>
-
 </div>
 
 ---
 
-## Motions
+## Exercise 1 — Triangle Motions
 
-Each triangle follows an independent path that loops indefinitely once animation starts (`E`).
+Three triangles, each following an independent path: Archimedean spiral, circular orbit, and sinusoidal sweep.
 
-| Triangle | Path | Notes |
-|----------|------|-------|
+<div align="center">
+<img src="docs/triangles.gif" alt="Three orange triangles moving in spiral, circle, and sinusoidal paths" width="720"/>
+</div>
+
+| Triangle | Motion | Notes |
+|----------|--------|-------|
 | Large (center) | Archimedean spiral | Expands and contracts as angle grows |
 | Medium (left) | Circle | Clockwise orbit around its origin |
 | Small (right) | Sinusoid | Horizontal sweep with a `sin` curve |
 
-Press `Tab` to cycle the active triangle and move it manually with `WASD`.
+Press `E` to start animation, `Tab` to select a triangle, `WASD` to move it manually.
+
+---
+
+## Exercise 2 — GLM Transformations
+
+Three shapes demonstrating GLM matrix transformations in real time.
+
+<div align="center">
+<img src="docs/transforms.gif" alt="House rotating, square pulsing, rectangle translating via GLM transforms" width="720"/>
+</div>
+
+| Shape | Transform | GLM call |
+|-------|-----------|----------|
+| House | Continuous rotation | `glm::rotate` |
+| Square (top-right) | Scale pulse (breathe) | `glm::scale` |
+| Rectangle (bottom-left) | Ping-pong translation | `glm::translate` |
+
+---
 
 ## Build
 
-Dependencies — GLFW 3.4 and GLAD 2 — are fetched automatically by CMake. No manual installs needed.
+Dependencies — GLFW 3.4, GLAD 2, and GLM 1.0.1 — are fetched automatically by CMake. No manual installs needed.
 
 **Requirements:**
 - CMake **≥ 3.24**
@@ -38,7 +56,7 @@ Dependencies — GLFW 3.4 and GLAD 2 — are fetched automatically by CMake. No 
 - Git
 - A working OpenGL 3.3 driver (any modern GPU)
 
-**Same three commands on Linux, macOS, and Windows:**
+**Same commands on Linux, macOS, and Windows:**
 
 ```bash
 git clone https://github.com/RayverAimar/Computer-graphics-practices.git
@@ -48,16 +66,18 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
 ```
 
-The first configure takes ~1 minute while CMake downloads GLFW and GLAD. Subsequent builds are incremental.
+The first configure takes ~1 minute while CMake downloads GLFW, GLAD, and GLM. Subsequent builds are incremental.
 
 ### Run
 
 ```bash
-# Linux / macOS
-./build/triangle-motions
+# Exercise 1 — triangle motions
+./build/triangle-motions        # Linux / macOS
+build\Release\triangle-motions.exe  # Windows
 
-# Windows
-build\Release\triangle-motions.exe
+# Exercise 2 — GLM transformations
+./build/house-transforms        # Linux / macOS
+build\Release\house-transforms.exe  # Windows
 ```
 
 ### Platform notes
@@ -72,54 +92,64 @@ sudo apt install xorg-dev libxkbcommon-dev libwayland-dev wayland-protocols \
                  libgl1-mesa-dev
 ```
 
-**Windows** — Visual Studio 2022 (or Build Tools) provides the MSVC toolchain that CMake picks up automatically. No extra system packages.
+**Windows** — Visual Studio 2022 (or Build Tools) provides the MSVC toolchain that CMake picks up automatically.
+
+---
 
 ## Controls
 
 | Key | Action |
 |-----|--------|
-| `E` | Start animation |
-| `Q` | Stop animation and reset motion state |
-| `Tab` | Cycle the active (manually-controlled) triangle |
+| `E` | Start animation (exercise 1) |
+| `Q` | Stop animation and reset |
+| `Tab` | Cycle the active triangle |
 | `W` `A` `S` `D` | Move active triangle |
 | `T` | Draw mode: filled triangles |
 | `P` | Draw mode: points |
 | `Esc` | Quit |
 
+---
+
 ## Project layout
 
 ```
 Computer-graphics-practices/
-├── main.cpp                   Entry point, render loop, keyboard callbacks
+├── main.cpp                        Exercise 1 — triangle motions
+├── transformations.cpp             Exercise 2 — GLM transformations
 ├── include/
-│   ├── open_gl_loader.h       GLFW window + GLAD context bootstrap
-│   ├── shader.h               GLSL program loader (vertex + fragment)
-│   ├── object.h               Base renderable with motion methods
-│   ├── triangle.h             Triangle geometry built from Object
-│   ├── point.h                3D point with arithmetic operators
-│   ├── vector3d.h             3D vector wrapping Point
-│   ├── utils.h                Screen size + shader path constants
-│   └── star.h                 (unused, future practice)
+│   ├── object.h                    Base renderable: motion methods (spiral, circle, sinusoid)
+│   ├── triangle.h                  Triangle geometry
+│   ├── square.h                    Square geometry
+│   ├── rectangle.h                 Rectangle geometry (2-triangle quad)
+│   ├── house.h                     House geometry (3-triangle composite)
+│   ├── open_gl_loader.h            GLFW window + GLAD context bootstrap
+│   ├── shader.h                    GLSL program loader
+│   ├── point.h / vector3d.h        3D math primitives
+│   └── utils.h                     Screen size + shader path constants
 ├── utils/
-│   ├── vertex_shader.vs       Pass-through vertex shader (OpenGL 3.3)
-│   └── fragment_shader.fs     Solid-color fragment shader
+│   ├── vertex_shader.vs            Pass-through vertex shader
+│   ├── vertex_shader_transform.vs  Vertex shader with `transform` uniform (GLM)
+│   └── fragment_shader.fs          Solid-color fragment shader
 ├── scripts/
-│   └── record_gif.sh          Render 120 frames via glReadPixels and build docs/demo.gif
-└── CMakeLists.txt             FetchContent build (GLFW 3.4 + GLAD 2)
+│   └── record_gif.sh               Render both exercises to docs/*.gif via glReadPixels
+└── CMakeLists.txt                  FetchContent build (GLFW 3.4 + GLAD 2 + GLM 1.0.1)
 ```
 
-## Recording the GIF
+---
 
-The binary supports a `--record <dir>` flag that renders 120 frames (4 s at 30 fps) directly from the OpenGL framebuffer via `glReadPixels` and writes them as PPM files — no screen capture needed.
+## Recording the GIFs
+
+Both binaries support `--record <dir>` — they render 120 frames directly from the OpenGL framebuffer via `glReadPixels` and write PPM files, with no screen capture involved.
 
 ```bash
 brew install ffmpeg     # macOS
 sudo apt install ffmpeg # Linux
 
 ./scripts/record_gif.sh
+# writes docs/triangles.gif and docs/transforms.gif
 ```
 
-The script runs `./build/triangle-motions --record /tmp/triangle_frames`, then converts the PPMs to `docs/demo.gif` using ffmpeg.
+---
 
 ## License
 

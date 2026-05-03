@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(triangle-motions LANGUAGES CXX C)
+project(cg-practices LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -29,23 +29,36 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(glad_cmake)
 glad_add_library(glad_gl STATIC REPRODUCIBLE API gl:core=3.3)
 
-# ── Executable ────────────────────────────────────────────────────────────────
-add_executable(triangle-motions main.cpp)
-
-target_include_directories(triangle-motions PRIVATE include)
-target_link_libraries(triangle-motions PRIVATE glfw glad_gl)
-
-# macOS: suppress the deprecated OpenGL warning introduced in 10.14
-if(APPLE)
-    target_compile_definitions(triangle-motions PRIVATE GL_SILENCE_DEPRECATION)
-    find_library(OPENGL_LIB OpenGL REQUIRED)
-    target_link_libraries(triangle-motions PRIVATE ${OPENGL_LIB})
-endif()
-
-# Copy shader files next to the executable so they are found at runtime
-add_custom_command(TARGET triangle-motions POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_SOURCE_DIR}/utils"
-            "$<TARGET_FILE_DIR:triangle-motions>/utils"
-    COMMENT "Copying shaders to build output directory"
+# ── GLM (header-only math) ────────────────────────────────────────────────────
+FetchContent_Declare(
+    glm
+    GIT_REPOSITORY  https://github.com/g-truc/glm.git
+    GIT_TAG         1.0.1
+    GIT_SHALLOW     TRUE
 )
+FetchContent_MakeAvailable(glm)
+
+# ── Common helper macro ───────────────────────────────────────────────────────
+macro(cg_executable TARGET SOURCE)
+    add_executable(${TARGET} ${SOURCE})
+    target_include_directories(${TARGET} PRIVATE include)
+    target_link_libraries(${TARGET} PRIVATE glfw glad_gl glm::glm)
+    if(APPLE)
+        target_compile_definitions(${TARGET} PRIVATE GL_SILENCE_DEPRECATION)
+        find_library(OPENGL_LIB OpenGL REQUIRED)
+        target_link_libraries(${TARGET} PRIVATE ${OPENGL_LIB})
+    endif()
+    # Copy all shaders next to the executable at build time
+    add_custom_command(TARGET ${TARGET} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${CMAKE_SOURCE_DIR}/utils"
+                "$<TARGET_FILE_DIR:${TARGET}>/utils"
+        COMMENT "Copying shaders for ${TARGET}"
+    )
+endmacro()
+
+# ── Exercise 1: triangle motions ──────────────────────────────────────────────
+cg_executable(triangle-motions   main.cpp)
+
+# ── Exercise 2: GLM transformations ───────────────────────────────────────────
+cg_executable(house-transforms   transformations.cpp)
