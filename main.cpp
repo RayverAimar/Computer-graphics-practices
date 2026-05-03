@@ -1,7 +1,9 @@
 #include <cmath>
+#include <filesystem>
+#include <fstream>
 
 #include "./include/shader.h"
-#include "./include//triangle.h"
+#include "./include/triangle.h"
 #include "./include/open_gl_loader.h"
 #include "./include/utils.h"
 
@@ -16,14 +18,34 @@ Point left_point(-0.5f, 0.0f, 0.0f);
 Point sinusoidal_point(-0.98f, 0.0f);
 
 std::vector<Triangle> triangles(3);
-//Triangle triangle(center, 0.02f);
-//Triangle triangle_2(left_point, 0.02f);
-//Triangle triangle_3(sinusoidal_point, 0.02f);
 
-int main()
+static void save_ppm(const std::string& path, int w, int h)
 {
-    Open_GL_Loader OpenGL(SCR_WIDTH, SCR_HEIGHT);
+    std::vector<unsigned char> pixels(w * h * 3);
+    glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+    std::ofstream f(path, std::ios::binary);
+    f << "P6\n" << w << " " << h << "\n255\n";
+    // OpenGL origin is bottom-left; PPM is top-left — flip vertically
+    for (int row = h - 1; row >= 0; --row)
+        f.write(reinterpret_cast<char*>(&pixels[row * w * 3]), w * 3);
+}
 
+int main(int argc, char* argv[])
+{
+    std::string record_dir;
+    for (int i = 1; i < argc; ++i)
+        if (std::string(argv[i]) == "--record" && i + 1 < argc)
+            record_dir = argv[++i];
+
+    const bool recording     = !record_dir.empty();
+    const int  record_frames = 120; // 4 s at 30 fps
+
+    if (recording) {
+        start = true;
+        std::filesystem::create_directories(record_dir);
+    }
+
+    Open_GL_Loader OpenGL(SCR_WIDTH, SCR_HEIGHT);
     Shader current_shader(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
 
     triangles[0] = Triangle(center, 0.06f);
@@ -34,6 +56,8 @@ int main()
     objectSetterUp<Triangle>(triangles[1], VBOs[1], VAOs[1], EBOs[1]);
     objectSetterUp<Triangle>(triangles[2], VBOs[2], VAOs[2], EBOs[2]);
 
+    int frame_count = 0;
+
     while (!glfwWindowShouldClose(OpenGL.window))
     {
         waiting_for_movement();
@@ -41,8 +65,8 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        current_shader.use(); //Using previously compiled shaders
-        
+        current_shader.use();
+
         glBindVertexArray(VAOs[0]);
         glDrawElements(mode, _size, GL_UNSIGNED_INT, 0);
 
@@ -52,6 +76,18 @@ int main()
         glBindVertexArray(VAOs[2]);
         glDrawElements(mode, _size, GL_UNSIGNED_INT, 0);
 
+        if (recording) {
+            // Read before swap — back buffer holds the completed frame.
+            // Use framebuffer size, not window size, for correct Retina pixels.
+            int fb_w, fb_h;
+            glfwGetFramebufferSize(OpenGL.window, &fb_w, &fb_h);
+            char path[512];
+            snprintf(path, sizeof(path), "%s/frame_%04d.ppm", record_dir.c_str(), frame_count);
+            save_ppm(path, fb_w, fb_h);
+            if (++frame_count >= record_frames)
+                glfwSetWindowShouldClose(OpenGL.window, GLFW_TRUE);
+        }
+
         glfwSwapBuffers(OpenGL.window);
         glfwPollEvents();
     }
@@ -59,7 +95,7 @@ int main()
     glDeleteVertexArrays(3, VAOs);
     glDeleteBuffers(3, VBOs);
     glDeleteBuffers(3, EBOs);
-    
+
     return 0;
 }
 
@@ -92,18 +128,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         _size = 3;
         mode = GL_POINTS;
     }
-
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
     {
         _size = 3;
         mode = GL_TRIANGLES;
     }
-
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
         start = true;
     }
-
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {
         start = false;
@@ -111,13 +144,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         triangles[1].stop();
         triangles[2].stop();
     }
-
     if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
     {
         cur++;
         cur = cur % 3;
     }
-
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {
         triangles[cur].move_to_the_left();
@@ -128,19 +159,16 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         triangles[cur].move_to_the_right();
         update_object(triangles[cur], VBOs[cur], VAOs[cur]);
     }
-
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
         triangles[cur].move_up();
         update_object(triangles[cur], VBOs[cur], VAOs[cur]);
     }
-
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
         triangles[cur].move_down();
         update_object(triangles[cur], VBOs[cur], VAOs[cur]);
     }
-
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, true);

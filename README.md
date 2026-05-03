@@ -103,8 +103,23 @@ Computer-graphics-practices/
 ├── utils/
 │   ├── vertex_shader.vs       Pass-through vertex shader (OpenGL 3.3)
 │   └── fragment_shader.fs     Solid-color fragment shader
+├── scripts/
+│   └── record_gif.sh          Render 120 frames via glReadPixels and build docs/demo.gif
 └── CMakeLists.txt             FetchContent build (GLFW 3.4 + GLAD 2)
 ```
+
+## Recording the GIF
+
+The binary supports a `--record <dir>` flag that renders 120 frames (4 s at 30 fps) directly from the OpenGL framebuffer via `glReadPixels` and writes them as PPM files — no screen capture needed.
+
+```bash
+brew install ffmpeg     # macOS
+sudo apt install ffmpeg # Linux
+
+./scripts/record_gif.sh
+```
+
+The script runs `./build/triangle-motions --record /tmp/triangle_frames`, then converts the PPMs to `docs/demo.gif` using ffmpeg.
 
 ## License
 
