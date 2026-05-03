@@ -10,6 +10,8 @@ Three triangles, three independent motion paths — spiral, circular, and sinuso
 
 <img src="docs/demo.gif" alt="Three triangles moving in spiral, circle, and sinusoidal paths" width="720"/>
 
+<img src="docs/preview.png" alt="Three orange triangles on teal background — spiral, circle, and sinusoidal motion" width="720"/>
+
 </div>
 
 ---
